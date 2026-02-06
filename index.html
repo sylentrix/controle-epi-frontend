@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de EPI - TOTVS Integration</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Controle de EPI</h1>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Pesquisar por nome, matrícula ou CPF...">
+                <button id="btnSearch">Buscar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden">Carregando dados...</div>
+
+        <!-- Mensagem de erro/vazio -->
+        <div id="messageArea" class="hidden"></div>
+
+        <!-- Tabela de Funcionários -->
+        <div class="table-responsive">
+            <table id="employeeTable">
+                <thead>
+                    <tr>
+                        <th>Matrícula</th>
+                        <th>Nome</th>
+                        <th>Cargo</th>
+                        <th>Setor</th>
+                        <th>Turno</th>
+                        <th>Início</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeBody">
+                    <!-- Preenchido via JS -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal de Detalhes e EPIs -->
+    <div id="epiModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalEmployeeName">Detalhes do Funcionário</h2>
+            <p id="modalEmployeeInfo"></p>
+            
+            <hr>
+            
+            <h3>Gerenciamento de EPIs</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>EPI</th>
+                            <th>Status</th>
+                            <th>Última Entrega</th>
+                            <th>Validade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="epiListBody">
+                        <!-- Itens de EPI aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<!-- Final do index.html -->
+<!-- Remova o script async function carregarFuncionarios() antigo -->
+    <script src="js/api.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
