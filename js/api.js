@@ -1,4 +1,3 @@
-// js/api.js
 const API_BASE_URL = "http://localhost:3000/api"; 
 
 const ApiService = {
@@ -8,18 +7,22 @@ const ApiService = {
         return await response.json();
     },
 
-    async getEmployeeEPIs(matricula) {
-        const response = await fetch(`${API_BASE_URL}/funcionarios/${matricula}/epis`);
-        if (!response.ok) return [];
+    async saveFicha(payload) {
+        const response = await fetch(`${API_BASE_URL}/entregas`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erro ao salvar");
+        }
         return await response.json();
     },
 
-    async registerDelivery(matricula, epiId) {
-        const response = await fetch(`${API_BASE_URL}/epis/entrega`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matricula, epiId, dataEntrega: new Date().toISOString() })
-        });
+    async getEmployeeEPIs(matricula) {
+        const response = await fetch(`${API_BASE_URL}/funcionarios/${matricula}/epis`);
+        if (!response.ok) return [];
         return await response.json();
     }
 };

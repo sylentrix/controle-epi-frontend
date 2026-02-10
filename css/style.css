@@ -1,120 +1,49 @@
-:root {
-    --primary-color: #005495; /* Cor padrão TOTVS */
-    --secondary-color: #f4f4f4;
-    --accent-color: #28a745;
-    --text-color: #333;
-    --border-color: #ddd;
-}
+:root { --primary: #005495; --success: #28a745; --bg: #f4f7f6; }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    color: var(--text-color);
-    background-color: #f8f9fa;
-}
+body { font-family: sans-serif; margin: 0; background: var(--bg); color: #333; }
+.container { max-width: 1000px; margin: 0 auto; padding: 20px; }
 
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 20px;
-}
+header { background: var(--primary); color: white; padding: 20px 0; }
+.search-container { display: flex; gap: 10px; margin-top: 10px; }
+.search-container input { flex: 1; padding: 10px; border-radius: 4px; border: none; }
 
-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 20px 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+.table-responsive { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #f8f9fa; font-size: 0.9rem; }
+tbody tr:hover { background: #f1f1f1; cursor: pointer; }
 
-.search-container {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+/* MODAL SYSTEM */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
-
-input[type="text"] {
-    flex: 1;
-    padding: 12px;
-    border-radius: 4px;
-    border: none;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-button:hover {
-    filter: brightness(0.9);
-}
-
-.table-responsive {
-    overflow-x: auto;
-    margin-top: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    text-align: left;
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-th {
-    background-color: #eee;
-}
-
-tbody tr:hover {
-    background-color: #f1f1f1;
-    cursor: pointer;
-}
-
-/* Modal */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
 .modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
+    background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 800px;
+    max-height: 90vh; overflow-y: auto; position: relative;
 }
+.hidden { display: none !important; }
+.close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; }
 
-.hidden { display: none; }
+/* FICHA TÉCNICA STYLE */
+.ficha-paper { max-width: 600px; border: 2px solid #333; }
+.ficha-header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 20px; }
+.ficha-header h2 { margin: 0; font-size: 1.2rem; }
+.ficha-header p { font-size: 0.7rem; font-weight: bold; }
 
+.row { display: flex; gap: 15px; margin-bottom: 15px; }
+.group { display: flex; flex-direction: column; flex: 1; }
+.flex-2 { flex: 2; }
+label { font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; }
+input { padding: 8px; border: 1px solid #333; }
+
+.sig-section { text-align: center; margin-top: 20px; }
+#sig-canvas { border: 1px dashed #000; background: #fff; width: 100%; max-width: 450px; }
+#sig-clearBtn { background: #eee; border: 1px solid #ccc; cursor: pointer; padding: 5px; font-size: 10px; }
+
+.btn-primary { background: var(--primary); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; }
+.btn-success { background: var(--success); color: white; border: none; padding: 15px; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 20px; }
+
+.modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
 .status-entregue { color: green; font-weight: bold; }
 .status-pendente { color: red; font-weight: bold; }
-
-.close-button {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 24px;
-    cursor: pointer;
-}

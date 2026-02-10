@@ -3,33 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Controle de EPI - TOTVS Integration</title>
+    <title>Controle de EPI</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-
-
 <body>
 
     <header>
         <div class="container">
             <h1>Controle de EPI</h1>
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Pesquisar por nome, matrícula ou CPF...">
+                <input type="text" id="searchInput" placeholder="Nome ou matrícula...">
                 <button id="btnSearch">Buscar</button>
             </div>
         </div>
     </header>
 
     <main class="container">
-        <!-- Loading Spinner -->
-        <div id="loading" class="hidden">Carregando dados...</div>
-
-        <!-- Mensagem de erro/vazio -->
+        <div id="loading" class="hidden">Carregando...</div>
         <div id="messageArea" class="hidden"></div>
 
-        <!-- Tabela de Funcionários -->
         <div class="table-responsive">
-            <table id="employeeTable">
+            <table>
                 <thead>
                     <tr>
                         <th>Matrícula</th>
@@ -40,44 +34,88 @@
                         <th>Início</th>
                     </tr>
                 </thead>
-                <tbody id="employeeBody">
-                    <!-- Preenchido via JS -->
-                </tbody>
+                <tbody id="employeeBody"></tbody>
             </table>
         </div>
     </main>
 
-    <!-- Modal de Detalhes e EPIs -->
-    <div id="epiModal" class="modal hidden">
+    <!-- MODAL 1: HISTÓRICO -->
+    <div id="epiModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 id="modalEmployeeName">Detalhes do Funcionário</h2>
+            <span class="close-btn" id="closeEpiModal">&times;</span>
+            <h2 id="modalEmployeeName">Detalhes</h2>
             <p id="modalEmployeeInfo"></p>
-            
             <hr>
-            
-            <h3>Gerenciamento de EPIs</h3>
+            <div class="modal-header-actions">
+                <h3>Gerenciamento de EPIs</h3>
+                <button id="btnOpenFicha" class="btn-primary">+ Registrar Nova Entrega</button>
+            </div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>EPI</th>
                             <th>Status</th>
-                            <th>Última Entrega</th>
+                            <th>Entrega</th>
                             <th>Validade</th>
-                            <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="epiListBody">
-                        <!-- Itens de EPI aqui -->
-                    </tbody>
+                    <tbody id="epiListBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-<!-- Final do index.html -->
-<!-- Remova o script async function carregarFuncionarios() antigo -->
+    <!-- MODAL 2: FICHA TÉCNICA -->
+    <div id="fichaModal" class="modal-overlay hidden">
+        <div class="modal-content ficha-paper">
+            <span class="close-btn" id="closeFichaModal">&times;</span>
+            <div class="ficha-header">
+                <h2>FICHA DE ENTREGA DOS EPI’S</h2>
+                <p>TERMO DE RESPONSABILIDADE PELA GUARDA E USO</p>
+            </div>
+
+            <div class="ficha-form">
+                <div class="row">
+                    <div class="group flex-2">
+                        <label>E.P.I RECEBIDO</label>
+                        <input type="text" id="f_epi">
+                    </div>
+                    <div class="group">
+                        <label>DATA RETIRADA</label>
+                        <input type="date" id="f_data">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="group">
+                        <label>QTDE.</label>
+                        <input type="number" id="f_qtde" value="1">
+                    </div>
+                    <div class="group">
+                        <label>MODELO</label>
+                        <input type="text" id="f_modelo">
+                    </div>
+                    <div class="group">
+                        <label>C.A.</label>
+                        <input type="text" id="f_ca">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="group">
+                        <label>DATA DEVOLUÇÃO</label>
+                        <input type="date" id="f_devolucao">
+                    </div>
+                </div>
+                <div class="sig-section">
+                    <label>ASSINATURA DO FUNCIONÁRIO</label>
+                    <canvas id="sig-canvas" width="450" height="120"></canvas>
+                    <button id="sig-clearBtn">Limpar</button>
+                </div>
+                <button id="btnSalvarFicha" class="btn-success">Salvar e Assinar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/main.js"></script>

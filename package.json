@@ -12,6 +12,8 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "iconv-lite": "^0.7.2",
+    "mysql2": "^3.16.3",
     "odbc": "^2.4.9"
   }
 }
