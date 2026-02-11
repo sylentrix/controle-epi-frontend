@@ -27,6 +27,9 @@ async function performSearch() {
             messageArea.innerText = "Nenhum funcionário encontrado.";
             messageArea.classList.remove('hidden');
         } else {
+
+            console.log(employees);
+
             employees.forEach(emp => {
                 const row = document.createElement('tr');
                 row.innerHTML = `

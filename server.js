@@ -8,8 +8,8 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Para suportar o Base64 da assinatura
 app.use(express.static(__dirname));
 
-// --- CONFIGURAÇÕES DE CONEXÃO ---
-const totvsConfig = "DSN=Conexao_TOTVS;UID=sysprogress;PWD=sysprogress";
+//AQUI FICA AS  CONFIGURAÇÕES DE CONEXÃO!!!!!!!!
+const totvsConfig = "DSN=Conexao_TOTVS;UID=sysprogress;PWD=sysprogress;IANAAppCodePage=106;";
 
 const dbConfig = {
     host: 'n8n-database.cukk4sxofq6l.sa-east-1.rds.amazonaws.com',
@@ -18,7 +18,7 @@ const dbConfig = {
     database: 'controle_epi'
 };
 
-// Helper: Converte "10/02/2024" para "2024-02-10"
+// ---- AQUI A GENTE TROCA A DATA !!!!! ---"
 function brDateToSql(dateStr) {
     if (!dateStr || dateStr === '-') return null;
     const parts = dateStr.split('/');
@@ -47,6 +47,8 @@ app.get("/api/funcionarios", async (req, res) => {
         } else {
             result = await connection.query(`SELECT FIRST 20 * FROM (${sql}) AS sub`);
         }
+
+        console.log(result);
 
         res.json(result.map(row => ({
             matricula: String(row.cdn_funcionario),
@@ -119,6 +121,7 @@ app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
             dataEntrega: row.data_retirada ? new Date(row.data_retirada).toLocaleDateString('pt-BR') : '-',
             ca: row.ca,
             qtde: row.qtde
+
         })));
     } catch (e) { res.status(500).json({ error: e.message }); }
     finally { if (connection) await connection.end(); }
