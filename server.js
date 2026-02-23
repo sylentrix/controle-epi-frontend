@@ -117,11 +117,13 @@ app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
              WHERE f.matricula = ? ORDER BY e.id DESC`, [matricula]
         );
         res.json(rows.map(row => ({
-            nomeEPI: row.epi_recebido,
-            dataEntrega: row.data_retirada ? new Date(row.data_retirada).toLocaleDateString('pt-BR') : '-',
+            epi: row.epi_recebido,
+            qtde: row.qtde,
+            modelo: row.modelo,
             ca: row.ca,
-            qtde: row.qtde
-
+            dataRetirada: row.data_retirada ? new Date(row.data_retirada).toLocaleDateString('pt-BR') : '-',
+            dataDevolucao: row.data_devolucao ? new Date(row.data_devolucao).toLocaleDateString('pt-BR') : '-',
+            assinatura: row.assinatura ? `data:image/png;base64,${row.assinatura.toString('base64')}` : null
         })));
     } catch (e) { res.status(500).json({ error: e.message }); }
     finally { if (connection) await connection.end(); }

@@ -24,21 +24,31 @@ document.getElementById('btnOpenFicha').onclick = () => {
 // --- HISTÓRICO ---
 async function loadEpiHistory(matricula) {
     const body = document.getElementById('epiListBody');
-    body.innerHTML = '<tr><td colspan="4">Carregando...</td></tr>';
+    body.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
     try {
         const epis = await ApiService.getEmployeeEPIs(matricula);
-        body.innerHTML = epis.length ? '' : '<tr><td colspan="4">Nenhum registro no MySQL.</td></tr>';
+        body.innerHTML = epis.length ? '' : '<tr><td colspan="7">Nenhum registro encontrado.</td></tr>';
+        
         epis.forEach(epi => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${epi.nomeEPI} (CA: ${epi.ca || '-'})</td>
-                <td class="status-entregue">Entregue</td>
-                <td>${epi.dataEntrega}</td>
-                <td>${epi.qtde} un.</td>
+                <td>${epi.epi}</td>
+                <td>${epi.qtde}</td>
+                <td>${epi.modelo || '-'}</td>
+                <td>${epi.ca || '-'}</td>
+                <td>${epi.dataRetirada}</td>
+                <td>${epi.dataDevolucao}</td>
+                <td>
+                    ${epi.assinatura 
+                        ? `<img src="${epi.assinatura}" alt="Assinatura" style="width: 100px; height: auto; border: 1px solid #eee;">` 
+                        : 'Sem assinatura'}
+                </td>
             `;
             body.appendChild(row);
         });
-    } catch (e) { body.innerHTML = '<tr><td colspan="4">Erro ao carregar dados.</td></tr>'; }
+    } catch (e) { 
+        body.innerHTML = '<tr><td colspan="7">Erro ao carregar dados.</td></tr>'; 
+    }
 }
 
 // --- ASSINATURA ---
