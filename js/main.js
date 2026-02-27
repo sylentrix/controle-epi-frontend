@@ -14,22 +14,17 @@ async function performSearch() {
 
     if (!query) return alert("Digite um nome ou matrícula para pesquisar");
 
-    // Limpa a tela e mostra 'Carregando'
     loading.classList.remove('hidden');
     tableBody.innerHTML = '';
     messageArea.classList.add('hidden');
 
     try {
-        // ApiService está no seu arquivo api.js
         const employees = await ApiService.searchEmployees(query);
 
         if (employees.length === 0) {
             messageArea.innerText = "Nenhum funcionário encontrado.";
             messageArea.classList.remove('hidden');
         } else {
-
-            console.log(employees);
-
             employees.forEach(emp => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -39,10 +34,21 @@ async function performSearch() {
                     <td>${emp.setor}</td>
                     <td>${emp.turno}</td>
                     <td>${emp.dataInicio}</td>
+                    <td><button class="btn-report" title="Gerar Relatório">📄</button></td>
                 `;
-                // Ao clicar na linha, abre o modal (que está no modal.js)
-                row.onclick = () => openEpiModal(emp);
-                tableBody.appendChild(row);
+                
+                // Clique na linha abre o histórico
+                row.onclick = (e) => {
+                    if(e.target.tagName !== 'BUTTON') openEpiModal(emp);
+                };
+
+                // Clique no botão de relatório
+                row.querySelector('.btn-report').onclick = (e) => {
+                    e.stopPropagation(); // Impede de abrir o modal de histórico junto
+                    openReportModal(emp);
+                };
+
+                tableBody.appendChild(row); // PRECISA estar dentro do forEach
             });
         }
     } catch (error) {

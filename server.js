@@ -9,14 +9,34 @@ app.use(express.json({ limit: '10mb' })); // Para suportar o Base64 da assinatur
 app.use(express.static(__dirname));
 
 //AQUI FICA AS  CONFIGURAÇÕES DE CONEXÃO!!!!!!!!
-const totvsConfig = "DSN=Conexao_TOTVS;UID=sysprogress;PWD=sysprogress;IANAAppCodePage=106;";
+// server.js
+require('dotenv').config(); // <-- ADICIONE ISSO NO TOPO DO ARQUIVO
+
+const express = require("express");
+const odbc = require("odbc");
+const cors = require("cors");
+const mysql = require("mysql2/promise");
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.static(__dirname));
+
+// CONFIGURAÇÕES VIA ENV
+const totvsConfig = process.env.TOTVS_CONNECTION;
 
 const dbConfig = {
-    host: 'n8n-database.cukk4sxofq6l.sa-east-1.rds.amazonaws.com',
-    user: 'root',
-    password: 'Flowabril202',
-    database: 'controle_epi'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
 };
+
+// ... restante do código (função brDateToSql e as rotas permanecem iguais)
+
+// No final do arquivo, use a porta do ENV ou a 3000 como padrão
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando em http://localhost:${PORT}`));
 
 // ---- AQUI A GENTE TROCA A DATA !!!!! ---"
 function brDateToSql(dateStr) {

@@ -1,49 +1,106 @@
-:root { --primary: #009334; --success: #28a745; --bg: #f4f7f6; }
+:root { 
+    --primary: #009334; 
+    --success: #28a745; 
+    --info: #007bff;
+    --bg: #f4f7f6; 
+    --text: #333;
+}
 
-body { font-family: sans-serif; margin: 0; background: var(--bg); color: #333; }
-.container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    margin: 0; 
+    background: var(--bg); 
+    color: var(--text); 
+}
 
-header { background: var(--primary); color: white; padding: 20px 0; }
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+header { background: var(--primary); color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 .search-container { display: flex; gap: 10px; margin-top: 10px; }
-.search-container input { flex: 1; padding: 10px; border-radius: 4px; border: none; }
+.search-container input { flex: 1; padding: 12px; border-radius: 4px; border: none; font-size: 1rem; }
 
-.table-responsive { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 20px; }
+/* --- TABELAS GERAIS --- */
+.table-responsive { 
+    background: white; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    margin-top: 20px; 
+}
 table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-th { background: #f8f9fa; font-size: 0.9rem; }
-tbody tr:hover { background: #f1f1f1; cursor: pointer; }
+th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #f8f9fa; font-size: 0.85rem; text-transform: uppercase; color: #666; }
+tbody tr:hover { background: #f9f9f9; cursor: pointer; }
 
-/* MODAL SYSTEM */
+/* --- SISTEMA DE MODAIS --- */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;
+    background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
 .modal-content {
-    background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 800px;
-    max-height: 90vh; overflow-y: auto; position: relative;
+    background: white; padding: 30px; border-radius: 8px; width: 95%; max-width: 900px;
+    max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 .hidden { display: none !important; }
-.close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; }
+.close-btn { position: absolute; right: 20px; top: 15px; font-size: 32px; cursor: pointer; color: #999; }
+.close-btn:hover { color: #333; }
 
-/* FICHA TÉCNICA STYLE */
-.ficha-paper { max-width: 600px; border: 2px solid #333; }
-.ficha-header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 20px; }
+/* --- FORMULÁRIO DE FICHA TÉCNICA --- */
+.ficha-paper { max-width: 650px; border: 1px solid #ddd; }
+.ficha-header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
 .ficha-header h2 { margin: 0; font-size: 1.2rem; }
-.ficha-header p { font-size: 0.7rem; font-weight: bold; }
+.ficha-header p { font-size: 0.75rem; font-weight: bold; margin: 5px 0; }
 
 .row { display: flex; gap: 15px; margin-bottom: 15px; }
 .group { display: flex; flex-direction: column; flex: 1; }
 .flex-2 { flex: 2; }
-label { font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; }
-input { padding: 8px; border: 1px solid #333; }
+label { font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; color: #555; }
+input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
 
-.sig-section { text-align: center; margin-top: 20px; }
-#sig-canvas { border: 1px dashed #000; background: #fff; width: 100%; max-width: 450px; }
-#sig-clearBtn { background: #eee; border: 1px solid #ccc; cursor: pointer; padding: 5px; font-size: 10px; }
+/* --- ÁREA DE ASSINATURA NO CANVAS --- */
+.sig-section { text-align: center; margin: 20px 0; }
+#sig-canvas { border: 1px dashed #999; background: #fff; width: 100%; max-width: 450px; cursor: crosshair; }
+#sig-clearBtn { background: #f0f0f0; border: 1px solid #ccc; cursor: pointer; padding: 5px 10px; font-size: 11px; margin-top: 5px; border-radius: 3px; }
 
-.btn-primary { background: var(--primary); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; }
-.btn-success { background: var(--success); color: white; border: none; padding: 15px; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 20px; }
+/* --- BOTÕES --- */
+.btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+.btn-success { background: var(--success); color: white; border: none; padding: 15px; cursor: pointer; width: 100%; font-size: 1rem; border-radius: 4px; font-weight: bold; }
+.btn-report { background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 1.1rem; transition: transform 0.1s; }
+.btn-report:hover { transform: scale(1.1); background: #0056b3; }
 
-.modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
-.status-entregue { color: green; font-weight: bold; }
-.status-pendente { color: red; font-weight: bold; }
+/* --- ESTILOS DO RELATÓRIO (HTML2PDF) --- */
+/* Estes estilos devem ser globais para a biblioteca capturar corretamente */
+.report-paper { background-color: white; color: black; padding: 20px; }
+.report-header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 25px; padding-bottom: 10px; }
+.report-employee-data { background: #fdfdfd; padding: 15px; border: 1px solid #eee; margin-bottom: 20px; border-radius: 4px; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-grid p { margin: 0; font-size: 0.95rem; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
+.info-grid strong { color: #666; font-size: 0.8rem; text-transform: uppercase; margin-right: 5px; }
+
+/* Estilo da Tabela do Relatório */
+.report-table-section { margin-top: 20px; }
+.report-table-section table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+.report-table-section th, .report-table-section td { 
+    border: 1px solid #333; 
+    padding: 8px; 
+    font-size: 0.85rem; 
+    text-align: left; 
+    word-wrap: break-word; 
+}
+.report-table-section th { background-color: #f2f2f2; }
+
+/* Imagem da Assinatura no PDF */
+.report-table-section img { height: 40px; width: auto; mix-blend-mode: multiply; display: block; }
+
+.report-footer { margin-top: 30px; font-size: 0.75rem; color: #888; text-align: right; border-top: 1px solid #eee; padding-top: 10px; }
+.modal-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
+
+/* --- AJUSTES EXCLUSIVOS PARA IMPRESSÃO (CONTROL+P) --- */
+@media print {
+    body * { visibility: hidden; }
+    #printableArea, #printableArea * { visibility: visible; }
+    #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
+    .no-print, .close-btn, .modal-actions { display: none !important; }
+    @page { size: A4; margin: 1.5cm; }
+}

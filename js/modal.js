@@ -4,6 +4,8 @@ const canvas = document.getElementById('sig-canvas');
 const ctx = canvas.getContext('2d');
 let currentEmployee = null; 
 let drawing = false;
+const reportModal = document.getElementById('reportModal');
+document.getElementById('closeReportModal').onclick = () => reportModal.classList.add('hidden');
 
 // --- CONTROLE DOS MODAIS ---
 async function openEpiModal(employee) {
@@ -13,6 +15,57 @@ async function openEpiModal(employee) {
     epiModal.classList.remove('hidden');
     loadEpiHistory(employee.matricula);
 }
+
+async function openReportModal(employee) {
+    // ... (mantenha o código de preencher dados do funcionário igual)
+
+    try {
+        const epis = await ApiService.getEmployeeEPIs(employee.matricula);
+        body.innerHTML = '';
+        
+        epis.forEach(epi => {
+            const row = document.createElement('tr');
+            
+            // VERIFICAÇÃO DA ASSINATURA:
+            // Se epi.assinatura existir, cria a tag <img>. Se não, escreve "Sem assinatura".
+            const assinaturaHtml = epi.assinatura 
+                ? `<img src="${epi.assinatura}" style="height: 40px; display: block;">` 
+                : '<span style="color: #999; font-size: 0.7rem;">Sem assinatura</span>';
+
+            row.innerHTML = `
+                <td>${epi.epi}</td>
+                <td>${epi.qtde}</td>
+                <td>${epi.ca || '-'}</td>
+                <td>${epi.dataRetirada}</td>
+                <td>${epi.dataDevolucao || '-'}</td>
+                <td>${assinaturaHtml}</td>
+            `;
+            body.appendChild(row);
+        });
+    } catch (e) {
+        body.innerHTML = '<tr><td colspan="6">Erro ao carregar dados.</td></tr>';
+    }
+}
+
+// Função de Imprimir
+// Função para Gerar PDF Real
+document.getElementById('btnPrintReport').onclick = () => {
+    const elemento = document.getElementById('printableArea');
+    const nomeFuncionario = document.getElementById('rep_nome').innerText;
+    
+    // Configurações do PDF
+    const opt = {
+        margin:       10,
+        filename:     `Relatorio_EPI_${nomeFuncionario}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, logging: false, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Evita quebrar assinaturas no meio
+    };
+
+    // Gerar e baixar
+    html2pdf().set(opt).from(elemento).save();
+};
 
 document.getElementById('closeEpiModal').onclick = () => epiModal.classList.add('hidden');
 document.getElementById('closeFichaModal').onclick = () => fichaModal.classList.add('hidden');

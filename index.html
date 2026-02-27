@@ -61,6 +61,7 @@
                             <th>Retirada</th>
                             <th>Devolução</th>
                             <th>Assinatura</th>
+                            <th>Ações</th>
 
                         </tr>
                     </thead>
@@ -119,6 +120,61 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL 3: RELATÓRIO PARA IMPRESSÃO -->
+<div id="reportModal" class="modal-overlay hidden">
+    <div class="modal-content report-paper">
+        <span class="close-btn" id="closeReportModal">&times;</span>
+        
+        <div id="printableArea">
+            <div class="report-header">
+                <h2>RELATÓRIO HISTÓRICO DE ENTREGAS DE EPI</h2>
+                <p>Documento de Conferência de Equipamentos de Proteção Individual</p>
+            </div>
+
+            <div class="report-employee-data">
+                <h3>Dados do Funcionário</h3>
+                <div class="info-grid">
+                    <p><strong>Matrícula:</strong> <span id="rep_matricula"></span></p>
+                    <p><strong>Nome:</strong> <span id="rep_nome"></span></p>
+                    <p><strong>Cargo:</strong> <span id="rep_cargo"></span></p>
+                    <p><strong>Setor:</strong> <span id="rep_setor"></span></p>
+                    <p><strong>Turno:</strong> <span id="rep_turno"></span></p>
+                    <p><strong>Início:</strong> <span id="rep_inicio"></span></p>
+                </div>
+            </div>
+
+            <div class="report-table-section">
+                <h3>EPIs Registrados</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>EPI Recebido</th>
+                            <th>Qtde</th>
+                            <th>C.A.</th>
+                            <th>Retirada</th>
+                            <th>Devolução</th>
+                            <th>Assinatura</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportListBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="report-footer">
+                <p>Relatório gerado em: <span id="reportGenDate"></span></p>
+            </div>
+        </div>
+
+        <div class="modal-actions no-print">
+            <button id="btnPrintReport" class="btn-primary">🖨️ Imprimir / Salvar PDF</button>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 
     <script src="js/api.js"></script>
     <script src="js/modal.js"></script>
