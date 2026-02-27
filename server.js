@@ -1,30 +1,18 @@
+require('dotenv').config(); // Sempre no topo
 const express = require("express");
 const odbc = require("odbc");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
 
 const app = express();
+
+// Middlewares
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Para suportar o Base64 da assinatura
+app.use(express.json({ limit: '10mb' })); 
 app.use(express.static(__dirname));
 
-//AQUI FICA AS  CONFIGURAÇÕES DE CONEXÃO!!!!!!!!
-// server.js
-require('dotenv').config(); // <-- ADICIONE ISSO NO TOPO DO ARQUIVO
-
-const express = require("express");
-const odbc = require("odbc");
-const cors = require("cors");
-const mysql = require("mysql2/promise");
-
-const app = express();
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.static(__dirname));
-
-// CONFIGURAÇÕES VIA ENV
+// Configurações extraídas do arquivo .env
 const totvsConfig = process.env.TOTVS_CONNECTION;
-
 const dbConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -32,13 +20,7 @@ const dbConfig = {
     database: process.env.DB_NAME
 };
 
-// ... restante do código (função brDateToSql e as rotas permanecem iguais)
-
-// No final do arquivo, use a porta do ENV ou a 3000 como padrão
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando em http://localhost:${PORT}`));
-
-// ---- AQUI A GENTE TROCA A DATA !!!!! ---"
+// Helper para converter data brasileira para SQL
 function brDateToSql(dateStr) {
     if (!dateStr || dateStr === '-') return null;
     const parts = dateStr.split('/');
@@ -68,8 +50,6 @@ app.get("/api/funcionarios", async (req, res) => {
             result = await connection.query(`SELECT FIRST 20 * FROM (${sql}) AS sub`);
         }
 
-        console.log(result);
-
         res.json(result.map(row => ({
             matricula: String(row.cdn_funcionario),
             nome: row.nom_pessoa_fisic,
@@ -78,8 +58,11 @@ app.get("/api/funcionarios", async (req, res) => {
             turno: "1º Turno",
             dataInicio: row.dat_admis_func ? new Date(row.dat_admis_func).toLocaleDateString('pt-BR') : '-'
         })));
-    } catch (e) { res.status(500).send(e.message); }
-    finally { if (connection) await connection.close(); }
+    } catch (e) { 
+        res.status(500).send(e.message); 
+    } finally { 
+        if (connection) await connection.close(); 
+    }
 });
 
 // 2. SALVAR NO MYSQL (Upsert Funcionário + Insert Entrega)
@@ -104,7 +87,7 @@ app.post("/api/entregas", async (req, res) => {
         const [rows] = await connection.execute("SELECT id FROM funcionarios WHERE matricula = ?", [funcionario.matricula]);
         const funcionarioId = rows[0].id;
 
-        // Converter Assinatura Base64 para Buffer (Blob)
+        // Converter Assinatura Base64 para Buffer
         const base64Data = ficha.assinaturaBase64.replace(/^data:image\/\w+;base64,/, "");
         const bufferAssinatura = Buffer.from(base64Data, 'base64');
 
@@ -131,7 +114,7 @@ app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
     try {
         connection = await mysql.createConnection(dbConfig);
         const [rows] = await connection.execute(
-            `SELECT e.epi_recebido, e.data_retirada, e.ca, e.qtde
+            `SELECT e.epi_recebido, e.data_retirada, e.ca, e.qtde, e.modelo, e.data_devolucao, e.assinatura
              FROM entregas_epi e
              JOIN funcionarios f ON f.id = e.funcionario_id
              WHERE f.matricula = ? ORDER BY e.id DESC`, [matricula]
@@ -145,8 +128,13 @@ app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
             dataDevolucao: row.data_devolucao ? new Date(row.data_devolucao).toLocaleDateString('pt-BR') : '-',
             assinatura: row.assinatura ? `data:image/png;base64,${row.assinatura.toString('base64')}` : null
         })));
-    } catch (e) { res.status(500).json({ error: e.message }); }
-    finally { if (connection) await connection.end(); }
+    } catch (e) { 
+        res.status(500).json({ error: e.message }); 
+    } finally { 
+        if (connection) await connection.end(); 
+    }
 });
 
-app.listen(3000, () => console.log("🚀 Servidor rodando em http://localhost:3000"));
+// Inicialização do servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando em http://localhost:${PORT}`));
