@@ -125,6 +125,9 @@ document.getElementById('btnSalvarFicha').onclick = async () => {
     const epiNome = document.getElementById('f_epi').value;
     if(!epiNome) return alert("Informe o EPI.");
 
+    // Verifica se o canvas está vazio (opcional, mas recomendado)
+    // Se quiser obrigar a assinatura, adicione uma lógica de validação aqui
+
     const payload = {
         funcionario: currentEmployee,
         ficha: {
@@ -140,9 +143,31 @@ document.getElementById('btnSalvarFicha').onclick = async () => {
 
     try {
         await ApiService.saveFicha(payload);
-        alert("✅ Salvo no MySQL!");
+        alert("✅ Registro salvo com sucesso!");
+        
+        // --- AQUI ACONTECE A LIMPEZA ---
+        limparFormularioFicha(); 
+        
+        // Fecha o modal e atualiza o histórico
         fichaModal.classList.add('hidden');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         loadEpiHistory(currentEmployee.matricula);
-    } catch (error) { alert("Erro: " + error.message); }
+    } catch (error) { 
+        alert("Erro ao salvar: " + error.message); 
+    }
 };
+
+function limparFormularioFicha() {
+    // Limpa os campos de texto e números
+    document.getElementById('f_epi').value = '';
+    document.getElementById('f_qtde').value = '1';
+    document.getElementById('f_modelo').value = '';
+    document.getElementById('f_ca').value = '';
+    document.getElementById('f_devolucao').value = '';
+    
+    // Reseta a data para o dia atual
+    document.getElementById('f_data').valueAsDate = new Date();
+
+    // Limpa o Canvas de assinatura
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath(); // Reseta o caminho do desenho
+}
