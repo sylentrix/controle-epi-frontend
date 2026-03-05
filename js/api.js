@@ -7,6 +7,19 @@ const ApiService = {
         return await response.json();
     },
 
+    async registerEmployee(data) {
+        const response = await fetch(`${API_BASE_URL}/funcionarios/novo`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erro ao cadastrar funcionário");
+        }
+        return await response.json();
+    },
+
     async saveFicha(payload) {
         const response = await fetch(`${API_BASE_URL}/entregas`, {
             method: "POST",

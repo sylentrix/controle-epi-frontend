@@ -1,19 +1,52 @@
 const epiModal = document.getElementById('epiModal');
 const fichaModal = document.getElementById('fichaModal');
 const reportModal = document.getElementById('reportModal');
+const addEmployeeModal = document.getElementById('addEmployeeModal');
+
 const canvas = document.getElementById('sig-canvas');
 const ctx = canvas.getContext('2d');
 
 let currentEmployee = null;
 let drawing = false;
-let hasSignature = false; // Controle de obrigatoriedade da assinatura
+let hasSignature = false;
 
 // --- FECHAR MODAIS ---
 document.getElementById('closeEpiModal').onclick = () => epiModal.classList.add('hidden');
 document.getElementById('closeFichaModal').onclick = () => fichaModal.classList.add('hidden');
 document.getElementById('closeReportModal').onclick = () => reportModal.classList.add('hidden');
+document.getElementById('closeAddModal').onclick = () => addEmployeeModal.classList.add('hidden');
 
-// --- ABRIR MODAL DE HISTÓRICO ---
+// --- ABRIR MODAL CADASTRO ---
+document.getElementById('btnOpenAddModal').onclick = () => {
+    document.getElementById('add_criado_em').value = new Date().toLocaleDateString('pt-BR');
+    addEmployeeModal.classList.remove('hidden');
+};
+
+// --- CADASTRO NOVO FUNCIONÁRIO ---
+document.getElementById('formAddFuncionario').onsubmit = async (e) => {
+    e.preventDefault();
+
+    const data = {
+        matricula: document.getElementById('add_matricula').value,
+        nome: document.getElementById('add_nome').value.trim(),
+        cargo: document.getElementById('add_cargo').value.trim(),
+        setor: document.getElementById('add_setor').value.trim(),
+        turno: document.getElementById('add_turno').value,
+        inicio: document.getElementById('add_inicio').value
+    };
+
+    try {
+        await ApiService.registerEmployee(data);
+        alert("✅ Funcionário cadastrado com sucesso!");
+        addEmployeeModal.classList.add('hidden');
+        document.getElementById('formAddFuncionario').reset();
+        if (typeof performSearch === "function") performSearch();
+    } catch (error) {
+        alert("❌ Erro ao cadastrar: " + error.message);
+    }
+};
+
+// --- HISTÓRICO E ENTREGA EPI ---
 async function openEpiModal(employee) {
     currentEmployee = employee;
     document.getElementById('modalEmployeeName').innerText = employee.nome;
@@ -22,83 +55,17 @@ async function openEpiModal(employee) {
     loadEpiHistory(employee.matricula);
 }
 
-// --- ABRIR MODAL DE NOVA ENTREGA ---
 document.getElementById('btnOpenFicha').onclick = () => {
-    limparFormularioFicha(); // Garante que abre limpo
+    limparFormularioFicha();
     fichaModal.classList.remove('hidden');
-    document.getElementById('f_data').valueAsDate = new Date();
 };
 
-// --- MODAL DE RELATÓRIO (IMPRESSÃO) ---
-async function openReportModal(employee) {
-    // Preenche dados do cabeçalho do relatório
-    document.getElementById('rep_matricula').innerText = employee.matricula;
-    document.getElementById('rep_nome').innerText = employee.nome;
-    document.getElementById('rep_cargo').innerText = employee.cargo;
-    document.getElementById('rep_setor').innerText = employee.setor;
-    document.getElementById('rep_turno').innerText = employee.turno;
-    document.getElementById('rep_inicio').innerText = employee.dataInicio;
-    document.getElementById('reportGenDate').innerText = new Date().toLocaleString('pt-BR');
-
-    const body = document.getElementById('reportListBody');
-    body.innerHTML = '<tr><td colspan="6">Carregando...</td></tr>';
-    reportModal.classList.remove('hidden');
-
-    try {
-        const epis = await ApiService.getEmployeeEPIs(employee.matricula);
-        body.innerHTML = '';
-
-        if (epis.length === 0) {
-            body.innerHTML = '<tr><td colspan="6">Nenhum EPI registrado para este funcionário.</td></tr>';
-            return;
-        }
-
-        epis.forEach(epi => {
-            const row = document.createElement('tr');
-            const assinaturaHtml = epi.assinatura 
-                ? `<img src="${epi.assinatura}" style="height: 40px; display: block;">` 
-                : '<span style="color: #999; font-size: 0.7rem;">Sem assinatura</span>';
-
-            row.innerHTML = `
-                <td>${epi.epi}</td>
-                <td>${epi.qtde}</td>
-                <td>${epi.ca || '-'}</td>
-                <td>${epi.dataRetirada}</td>
-                <td>${epi.dataDevolucao || '-'}</td>
-                <td>${assinaturaHtml}</td>
-            `;
-            body.appendChild(row);
-        });
-    } catch (e) {
-        body.innerHTML = '<tr><td colspan="6">Erro ao carregar dados.</td></tr>';
-    }
-}
-
-// --- GERAR PDF / IMPRIMIR ---
-document.getElementById('btnPrintReport').onclick = () => {
-    const elemento = document.getElementById('printableArea');
-    const nomeFuncionario = document.getElementById('rep_nome').innerText;
-    
-    const opt = {
-        margin:       10,
-        filename:     `Relatorio_EPI_${nomeFuncionario}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, logging: false, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    html2pdf().set(opt).from(elemento).save();
-};
-
-// --- CARREGAR HISTÓRICO NO TABELA DO MODAL ---
 async function loadEpiHistory(matricula) {
     const body = document.getElementById('epiListBody');
     body.innerHTML = '<tr><td colspan="8">Carregando...</td></tr>';
     try {
         const epis = await ApiService.getEmployeeEPIs(matricula);
         body.innerHTML = epis.length ? '' : '<tr><td colspan="8">Nenhum registro encontrado.</td></tr>';
-        
         epis.forEach(epi => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -108,70 +75,96 @@ async function loadEpiHistory(matricula) {
                 <td>${epi.ca || '-'}</td>
                 <td>${epi.dataRetirada}</td>
                 <td>${epi.dataDevolucao || '-'}</td>
-                <td>
-                    ${epi.assinatura 
-                        ? `<img src="${epi.assinatura}" alt="Assinatura" style="width: 100px; height: auto; border: 1px solid #eee;">` 
-                        : 'Sem assinatura'}
-                </td>
+                <td><img src="${epi.assinatura}" style="width: 80px;"></td>
                 <td>-</td>
             `;
             body.appendChild(row);
         });
-    } catch (e) { 
-        body.innerHTML = '<tr><td colspan="8">Erro ao carregar dados.</td></tr>'; 
-    }
+    } catch (e) { body.innerHTML = '<tr><td colspan="8">Erro ao carregar dados.</td></tr>'; }
 }
 
-// --- LÓGICA DA ASSINATURA (CANVAS) ---
-canvas.onmousedown = () => drawing = true;
+// --- ASSINATURA (Mouse) ---
+canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); };
 canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
+canvas.onmouseleave = () => { drawing = false; ctx.beginPath(); };
 canvas.onmousemove = (e) => {
-    if(!drawing) return;
-    hasSignature = true; // Marca que o usuário assinou
+    if (!drawing) return;
+    hasSignature = true;
     const rect = canvas.getBoundingClientRect();
     ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#000";
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
     ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 };
+
+// --- ASSINATURA (Touch/Mobile) ---
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    drawing = true;
+    ctx.beginPath();
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    drawing = false;
+    ctx.beginPath();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!drawing) return;
+    hasSignature = true;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+}, { passive: false });
 
 document.getElementById('sig-clearBtn').onclick = (e) => {
     e.preventDefault();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
-    hasSignature = false; // Reseta a validação
+    hasSignature = false;
 };
 
-// --- SALVAR FICHA COM VALIDAÇÃO ---
+// --- VALIDAÇÃO E SALVAMENTO DA FICHA ---
 document.getElementById('btnSalvarFicha').onclick = async () => {
-    const epi = document.getElementById('f_epi').value.trim();
-    const dataRetirada = document.getElementById('f_data').value;
-    const qtde = document.getElementById('f_qtde').value;
-    const modelo = document.getElementById('f_modelo').value.trim();
-    const ca = document.getElementById('f_ca').value.trim();
+    const epi        = document.getElementById('f_epi').value.trim();
+    const qtde       = document.getElementById('f_qtde').value.trim();
+    const modelo     = document.getElementById('f_modelo').value.trim();
+    const ca         = document.getElementById('f_ca').value.trim();
+    const dataRetirada = document.getElementById('f_data').value.trim();
 
-    // Validações de Campos Obrigatórios
-    if (!epi) return alert("O campo 'E.P.I RECEBIDO' é obrigatório.");
-    if (!dataRetirada) return alert("O campo 'DATA RETIRADA' é obrigatório.");
-    if (!qtde || qtde <= 0) return alert("Informe uma 'QTDE' válida.");
-    if (!modelo) return alert("O campo 'MODELO' é obrigatório.");
-    if (!ca) return alert("O campo 'C.A.' é obrigatório.");
+    // --- Campos obrigatórios ---
+    const camposFaltando = [];
+    if (!epi)          camposFaltando.push('E.P.I Recebido');
+    if (!qtde || Number(qtde) < 1) camposFaltando.push('Quantidade');
+    if (!modelo)       camposFaltando.push('Modelo');
+    if (!ca)           camposFaltando.push('C.A.');
+    if (!dataRetirada) camposFaltando.push('Data de Retirada');
+    if (!hasSignature) camposFaltando.push('Assinatura do Funcionário');
 
-    // Validação da Assinatura
-    if (!hasSignature) {
-        return alert("A assinatura do funcionário é obrigatória.");
+    if (camposFaltando.length > 0) {
+        alert(`❌ Preencha os campos obrigatórios:\n\n• ${camposFaltando.join('\n• ')}`);
+        return;
     }
 
     const payload = {
         funcionario: currentEmployee,
         ficha: {
-            epi: epi,
-            qtde: qtde,
-            modelo: modelo,
-            ca: ca,
-            dataRetirada: dataRetirada,
-            dataDevolucao: document.getElementById('f_devolucao').value,
+            epi,
+            qtde,
+            modelo,
+            ca,
+            dataRetirada,
             assinaturaBase64: canvas.toDataURL("image/png")
         }
     };
@@ -179,26 +172,45 @@ document.getElementById('btnSalvarFicha').onclick = async () => {
     try {
         await ApiService.saveFicha(payload);
         alert("✅ Registro salvo com sucesso!");
-        
-        limparFormularioFicha(); 
         fichaModal.classList.add('hidden');
+        limparFormularioFicha();
         loadEpiHistory(currentEmployee.matricula);
-    } catch (error) { 
-        alert("Erro ao salvar: " + error.message); 
+    } catch (e) {
+        alert("❌ Erro ao salvar: " + e.message);
     }
 };
 
-// --- FUNÇÃO PARA LIMPAR FORMULÁRIO ---
+// --- LIMPAR FORMULÁRIO COMPLETO ---
 function limparFormularioFicha() {
     document.getElementById('f_epi').value = '';
     document.getElementById('f_qtde').value = '1';
     document.getElementById('f_modelo').value = '';
     document.getElementById('f_ca').value = '';
-    document.getElementById('f_devolucao').value = '';
     document.getElementById('f_data').valueAsDate = new Date();
-
-    // Limpa Canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
-    hasSignature = false; // Reseta o controle de obrigatoriedade
+    hasSignature = false;
 }
+
+// --- RELATÓRIO ---
+async function openReportModal(employee) {
+    document.getElementById('rep_matricula').innerText = employee.matricula;
+    document.getElementById('rep_nome').innerText = employee.nome;
+    document.getElementById('rep_cargo').innerText = employee.cargo;
+    reportModal.classList.remove('hidden');
+    const body = document.getElementById('reportListBody');
+    body.innerHTML = '';
+    try {
+        const epis = await ApiService.getEmployeeEPIs(employee.matricula);
+        epis.forEach(epi => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${epi.epi}</td><td>${epi.qtde}</td><td>${epi.ca}</td><td>${epi.dataRetirada}</td><td><img src="${epi.assinatura}" height="40"></td>`;
+            body.appendChild(row);
+        });
+    } catch (e) {}
+}
+
+document.getElementById('btnPrintReport').onclick = () => {
+    const elemento = document.getElementById('printableArea');
+    html2pdf().set({ margin: 10, filename: 'Relatorio.pdf', jsPDF: { format: 'a4' } }).from(elemento).save();
+};

@@ -1,4 +1,4 @@
-require('dotenv').config(); // Sempre no topo
+require('dotenv').config();
 const express = require("express");
 const odbc = require("odbc");
 const cors = require("cors");
@@ -6,12 +6,10 @@ const mysql = require("mysql2/promise");
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.static(__dirname));
 
-// Configurações extraídas do arquivo .env
 const totvsConfig = process.env.TOTVS_CONNECTION;
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -20,7 +18,6 @@ const dbConfig = {
     database: process.env.DB_NAME
 };
 
-// Helper para converter data brasileira para SQL
 function brDateToSql(dateStr) {
     if (!dateStr || dateStr === '-') return null;
     const parts = dateStr.split('/');
@@ -28,44 +25,92 @@ function brDateToSql(dateStr) {
     return dateStr;
 }
 
-// 1. BUSCA NO TOTVS (Via ODBC)
+// 1. BUSCA HÍBRIDA (MySQL + ODBC)
 app.get("/api/funcionarios", async (req, res) => {
     const busca = req.query.busca;
-    let connection;
+    if (!busca) return res.json([]);
+
+    let connectionODBC;
+    let connectionMySQL;
+    let resultadosFinais = [];
+
     try {
-        connection = await odbc.connect(totvsConfig);
-        let sql = `SELECT ul.des_unid_lotac AS "setor", cg.des_cargo, fc.cdn_funcionario, fc.dat_admis_func, fc.nom_pessoa_fisic
-                   FROM hcm.PUB."funcionario" AS fc
-                   INNER JOIN hcm.PUB.cargo AS cg ON cg.cdn_cargo_basic = fc.cdn_cargo_basic
-                   INNER JOIN hcm.PUB.unid_lotac AS ul ON ul.cod_unid_lotac = fc.cod_unid_lotac`;
-        
-        let result;
-        if (busca) {
-            if (!isNaN(busca)) {
-                result = await connection.query(sql + " WHERE fc.cdn_funcionario = ?", [parseInt(busca)]);
-            } else {
-                result = await connection.query(sql + " WHERE fc.nom_pessoa_fisic LIKE ?", [`%${busca.toUpperCase()}%`]);
-            }
-        } else {
-            result = await connection.query(`SELECT FIRST 20 * FROM (${sql}) AS sub`);
+        // --- BUSCA NO MYSQL ---
+        connectionMySQL = await mysql.createConnection(dbConfig);
+        const [rowsMysql] = await connectionMySQL.execute(
+            `SELECT matricula, nome, cargo, setor, turno, DATE_FORMAT(inicio, '%d/%m/%Y') as dataInicio 
+             FROM funcionarios 
+             WHERE nome LIKE ? OR matricula = ?`,
+            [`%${busca}%`, busca]
+        );
+        resultadosFinais = [...rowsMysql];
+
+        // --- BUSCA NO TOTVS (ODBC) ---
+        try {
+            connectionODBC = await odbc.connect(totvsConfig);
+            let sqlTotvs = `SELECT ul.des_unid_lotac AS "setor", cg.des_cargo, fc.cdn_funcionario, fc.dat_admis_func, fc.nom_pessoa_fisic
+                           FROM hcm.PUB."funcionario" AS fc
+                           INNER JOIN hcm.PUB.cargo AS cg ON cg.cdn_cargo_basic = fc.cdn_cargo_basic
+                           INNER JOIN hcm.PUB.unid_lotac AS ul ON ul.cod_unid_lotac = fc.cod_unid_lotac
+                           WHERE fc.nom_pessoa_fisic LIKE ? OR fc.cdn_funcionario = ?`;
+            
+            const resultTotvs = await connectionODBC.query(sqlTotvs, [`%${busca.toUpperCase()}%`, isNaN(busca) ? -1 : parseInt(busca)]);
+            
+            const formatadosTotvs = resultTotvs.map(row => ({
+                matricula: String(row.cdn_funcionario),
+                nome: row.nom_pessoa_fisic,
+                cargo: row.des_cargo,
+                setor: row.setor,
+                turno: "1º Turno",
+                dataInicio: row.dat_admis_func ? new Date(row.dat_admis_func).toLocaleDateString('pt-BR') : '-'
+            }));
+            
+            resultadosFinais = [...resultadosFinais, ...formatadosTotvs];
+        } catch (errOdbc) {
+            console.error("ODBC Indisponível, usando apenas MySQL.");
         }
 
-        res.json(result.map(row => ({
-            matricula: String(row.cdn_funcionario),
-            nome: row.nom_pessoa_fisic,
-            cargo: row.des_cargo,
-            setor: row.setor,
-            turno: "1º Turno",
-            dataInicio: row.dat_admis_func ? new Date(row.dat_admis_func).toLocaleDateString('pt-BR') : '-'
-        })));
+        const uniqueMap = new Map();
+        resultadosFinais.forEach(emp => uniqueMap.set(emp.matricula, emp));
+        res.json(Array.from(uniqueMap.values()));
+
     } catch (e) { 
-        res.status(500).send(e.message); 
+        res.status(500).json({ error: e.message }); 
     } finally { 
-        if (connection) await connection.close(); 
+        if (connectionODBC) await connectionODBC.close(); 
+        if (connectionMySQL) await connectionMySQL.end();
     }
 });
 
-// 2. SALVAR NO MYSQL (Upsert Funcionário + Insert Entrega)
+// 2. CADASTRO DE NOVO FUNCIONÁRIO (MySQL)
+app.post("/api/funcionarios/novo", async (req, res) => {
+    const { matricula, nome, cargo, setor, turno, inicio } = req.body;
+    let connection;
+
+    if (!matricula || !nome || !cargo || !setor) {
+        return res.status(400).json({ error: "Matrícula, Nome, Cargo e Setor são obrigatórios." });
+    }
+
+    try {
+        connection = await mysql.createConnection(dbConfig);
+        const [existe] = await connection.execute("SELECT id FROM funcionarios WHERE matricula = ?", [matricula]);
+        if (existe.length > 0) {
+            return res.status(400).json({ error: "Esta matrícula já está cadastrada no sistema." });
+        }
+
+        await connection.execute(
+            `INSERT INTO funcionarios (matricula, nome, cargo, setor, turno, inicio) VALUES (?, ?, ?, ?, ?, ?)`,
+            [matricula, nome, cargo, setor, turno, inicio || null]
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
+
+// 3. SALVAR ENTREGA EPI
 app.post("/api/entregas", async (req, res) => {
     const { funcionario, ficha } = req.body;
     let connection;
@@ -73,7 +118,6 @@ app.post("/api/entregas", async (req, res) => {
         connection = await mysql.createConnection(dbConfig);
         await connection.beginTransaction();
 
-        // UPSERT do Funcionário
         await connection.execute(
             `INSERT INTO funcionarios (matricula, nome, cargo, setor, turno, inicio)
              VALUES (?, ?, ?, ?, ?, ?)
@@ -87,7 +131,6 @@ app.post("/api/entregas", async (req, res) => {
         const [rows] = await connection.execute("SELECT id FROM funcionarios WHERE matricula = ?", [funcionario.matricula]);
         const funcionarioId = rows[0].id;
 
-        // Converter Assinatura Base64 para Buffer
         const base64Data = ficha.assinaturaBase64.replace(/^data:image\/\w+;base64,/, "");
         const bufferAssinatura = Buffer.from(base64Data, 'base64');
 
@@ -107,7 +150,7 @@ app.post("/api/entregas", async (req, res) => {
     }
 });
 
-// 3. BUSCAR HISTÓRICO NO MYSQL
+// 4. HISTÓRICO
 app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
     const { matricula } = req.params;
     let connection;
@@ -135,6 +178,5 @@ app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
     }
 });
 
-// Inicialização do servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando em http://localhost:${PORT}`));

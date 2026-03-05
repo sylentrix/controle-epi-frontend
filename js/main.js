@@ -1,7 +1,5 @@
-// js/main.js
 document.getElementById('btnSearch').addEventListener('click', performSearch);
 
-// Permite dar 'Enter' no campo de busca
 document.getElementById('searchInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') performSearch();
 });
@@ -11,20 +9,28 @@ async function performSearch() {
     const loading = document.getElementById('loading');
     const tableBody = document.getElementById('employeeBody');
     const messageArea = document.getElementById('messageArea');
+    const noResultsArea = document.getElementById('noResultsArea');
 
     if (!query) return alert("Digite um nome ou matrícula para pesquisar");
 
+    // Reset de tela
     loading.classList.remove('hidden');
     tableBody.innerHTML = '';
     messageArea.classList.add('hidden');
+    noResultsArea.classList.add('hidden'); // Esconde o botão de adicionar no início da busca
 
     try {
         const employees = await ApiService.searchEmployees(query);
+        console.log("Funcionários encontrados:", employees); // Para debug
 
-        if (employees.length === 0) {
-            messageArea.innerText = "Nenhum funcionário encontrado.";
+        if (!employees || employees.length === 0) {
+            // MOSTRA A ÁREA COM O BOTÃO SE NÃO VIER NADA
+            noResultsArea.classList.remove('hidden');
+            messageArea.innerText = "Nenhum resultado encontrado no TOTVS ou no MySQL.";
             messageArea.classList.remove('hidden');
         } else {
+            // SE ENCONTRAR, MONTA A TABELA
+            noResultsArea.classList.add('hidden');
             employees.forEach(emp => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -37,22 +43,20 @@ async function performSearch() {
                     <td><button class="btn-report" title="Gerar Relatório">📄</button></td>
                 `;
                 
-                // Clique na linha abre o histórico
                 row.onclick = (e) => {
                     if(e.target.tagName !== 'BUTTON') openEpiModal(emp);
                 };
 
-                // Clique no botão de relatório
                 row.querySelector('.btn-report').onclick = (e) => {
-                    e.stopPropagation(); // Impede de abrir o modal de histórico junto
+                    e.stopPropagation();
                     openReportModal(emp);
                 };
 
-                tableBody.appendChild(row); // PRECISA estar dentro do forEach
+                tableBody.appendChild(row);
             });
         }
     } catch (error) {
-        console.error(error);
+        console.error("Erro na busca:", error);
         messageArea.innerText = "Erro na conexão com o servidor.";
         messageArea.classList.remove('hidden');
     } finally {

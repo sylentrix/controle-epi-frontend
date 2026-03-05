@@ -104,3 +104,38 @@ input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
     .no-print, .close-btn, .modal-actions { display: none !important; }
     @page { size: A4; margin: 1.5cm; }
 }
+
+.hidden {
+    display: none !important;
+}
+
+#noResultsArea {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Garante que o modal suma e apareça */
+.hidden {
+    display: none !important;
+}
+
+/* Estilo para a Ficha de Cadastro */
+.ficha-cadastro {
+    max-width: 600px;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+
+#noResultsArea {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 20px 0;
+}

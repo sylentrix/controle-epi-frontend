@@ -21,6 +21,11 @@
     <main class="container">
         <div id="loading" class="hidden">Carregando...</div>
         <div id="messageArea" class="hidden"></div>
+        
+        <div id="noResultsArea" class="hidden" style="text-align: center; margin: 20px 0; padding: 20px; border: 1px dashed #ccc;">
+            <p>Funcionário não encontrado em nenhuma base.</p>
+            <button id="btnOpenAddModal" class="btn-primary">+ Adicionar Novo Funcionário</button>
+        </div>
 
         <div class="table-responsive">
             <table>
@@ -32,6 +37,7 @@
                         <th>Setor</th>
                         <th>Turno</th>
                         <th>Início</th>
+                        <th>Relatório</th>
                     </tr>
                 </thead>
                 <tbody id="employeeBody"></tbody>
@@ -62,7 +68,6 @@
                             <th>Devolução</th>
                             <th>Assinatura</th>
                             <th>Ações</th>
-
                         </tr>
                     </thead>
                     <tbody id="epiListBody"></tbody>
@@ -71,7 +76,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: FICHA TÉCNICA -->
+    <!-- MODAL 2: FICHA TÉCNICA (ENTREGA EPI) -->
     <div id="fichaModal" class="modal-overlay hidden">
         <div class="modal-content ficha-paper">
             <span class="close-btn" id="closeFichaModal">&times;</span>
@@ -79,7 +84,6 @@
                 <h2>FICHA DE ENTREGA DOS EPI’S</h2>
                 <p>TERMO DE RESPONSABILIDADE PELA GUARDA E USO</p>
             </div>
-
             <div class="ficha-form">
                 <div class="row">
                     <div class="group flex-2">
@@ -105,15 +109,9 @@
                         <input type="text" id="f_ca">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="group">
-                        <label>DATA DEVOLUÇÃO</label>
-                        <input type="date" id="f_devolucao">
-                    </div>
-                </div>
                 <div class="sig-section">
                     <label>ASSINATURA DO FUNCIONÁRIO</label>
-                    <canvas id="sig-canvas" width="450" height="120"></canvas>
+                    <canvas id="sig-canvas" width="450" height="120" style="border: 1px solid #ccc;"></canvas>
                     <button id="sig-clearBtn">Limpar</button>
                 </div>
                 <button id="btnSalvarFicha" class="btn-success">Salvar e Assinar</button>
@@ -121,61 +119,101 @@
         </div>
     </div>
 
-    <!-- MODAL 3: RELATÓRIO PARA IMPRESSÃO -->
-<div id="reportModal" class="modal-overlay hidden">
-    <div class="modal-content report-paper">
-        <span class="close-btn" id="closeReportModal">&times;</span>
-        
-        <div id="printableArea">
-            <div class="report-header">
-                <h2>RELATÓRIO HISTÓRICO DE ENTREGAS DE EPI</h2>
-                <p>Documento de Conferência de Equipamentos de Proteção Individual</p>
-            </div>
-
-            <div class="report-employee-data">
-                <h3>Dados do Funcionário</h3>
-                <div class="info-grid">
-                    <p><strong>Matrícula:</strong> <span id="rep_matricula"></span></p>
-                    <p><strong>Nome:</strong> <span id="rep_nome"></span></p>
-                    <p><strong>Cargo:</strong> <span id="rep_cargo"></span></p>
-                    <p><strong>Setor:</strong> <span id="rep_setor"></span></p>
-                    <p><strong>Turno:</strong> <span id="rep_turno"></span></p>
-                    <p><strong>Início:</strong> <span id="rep_inicio"></span></p>
-                </div>
-            </div>
-
-            <div class="report-table-section">
-                <h3>EPIs Registrados</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>EPI Recebido</th>
-                            <th>Qtde</th>
-                            <th>C.A.</th>
-                            <th>Retirada</th>
-                            <th>Devolução</th>
-                            <th>Assinatura</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reportListBody"></tbody>
-                </table>
+    <!-- MODAL 3: CADASTRO NOVO FUNCIONÁRIO (FICHA) -->
+    <div id="addEmployeeModal" class="modal-overlay hidden">
+        <div class="modal-content ficha-paper">
+            <span class="close-btn" id="closeAddModal">&times;</span>
+            <div class="ficha-header">
+                <h2>CADASTRO DE NOVO FUNCIONÁRIO</h2>
+                <p>Preencha os dados abaixo para inserir no sistema</p>
             </div>
             
-            <div class="report-footer">
-                <p>Relatório gerado em: <span id="reportGenDate"></span></p>
-            </div>
-        </div>
-
-        <div class="modal-actions no-print">
-            <button id="btnPrintReport" class="btn-primary">🖨️ Imprimir / Salvar PDF</button>
+            <form id="formAddFuncionario" class="ficha-form">
+                <div class="row">
+                    <div class="group">
+                        <label>Matrícula (ID) *</label>
+                        <input type="number" id="add_matricula" required placeholder="Ex: 1234">
+                    </div>
+                    <div class="group flex-2">
+                        <label>Nome Completo *</label>
+                        <input type="text" id="add_nome" required placeholder="Nome do funcionário">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="group">
+                        <label>Cargo *</label>
+                        <input type="text" id="add_cargo" required placeholder="Ex: Operador">
+                    </div>
+                    <div class="group">
+                        <label>Setor *</label>
+                        <input type="text" id="add_setor" required placeholder="Ex: Produção">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="group">
+                        <label>Turno</label>
+                        <select id="add_turno">
+                            <option value="1º Turno">1º Turno</option>
+                            <option value="2º Turno">2º Turno</option>
+                            <option value="3º Turno">3º Turno</option>
+                            <option value="Adm">Administrativo</option>
+                        </select>
+                    </div>
+                    <div class="group">
+                        <label>Data de Início</label>
+                        <input type="date" id="add_inicio">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="group">
+                        <label>Criado em (Hoje)</label>
+                        <input type="text" id="add_criado_em" readonly style="background: #eee;">
+                    </div>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn-success" style="flex: 2;">Confirmar Cadastro</button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
+    <!-- MODAL 4: RELATÓRIO -->
+    <div id="reportModal" class="modal-overlay hidden">
+        <div class="modal-content report-paper">
+            <span class="close-btn" id="closeReportModal">&times;</span>
+            <div id="printableArea">
+                <div class="report-header">
+                    <h2>RELATÓRIO HISTÓRICO DE ENTREGAS DE EPI</h2>
+                </div>
+                <div class="report-employee-data">
+                    <div class="info-grid">
+                        <p><strong>Matrícula:</strong> <span id="rep_matricula"></span></p>
+                        <p><strong>Nome:</strong> <span id="rep_nome"></span></p>
+                        <p><strong>Cargo:</strong> <span id="rep_cargo"></span></p>
+                    </div>
+                </div>
+                <div class="report-table-section">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>EPI</th>
+                                <th>Qtde</th>
+                                <th>C.A.</th>
+                                <th>Retirada</th>
+                                <th>Assinatura</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-actions no-print">
+                <button id="btnPrintReport" class="btn-primary">🖨️ Imprimir / Salvar PDF</button>
+            </div>
+        </div>
+    </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="js/api.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/main.js"></script>
