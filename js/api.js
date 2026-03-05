@@ -1,10 +1,12 @@
-const API_BASE_URL = "http://localhost:3000/api"; 
+const API_BASE_URL = "http://localhost:3000/api";
 
 const ApiService = {
+
+    // Retorna { resultados: [...], fontes: { mysql, odbc } }
     async searchEmployees(query) {
         const response = await fetch(`${API_BASE_URL}/funcionarios?busca=${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error("Erro ao buscar funcionários");
-        return await response.json();
+        return await response.json(); // objeto completo, não apenas o array
     },
 
     async registerEmployee(data) {
