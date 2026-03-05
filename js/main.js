@@ -5,33 +5,40 @@ document.getElementById('searchInput').addEventListener('keypress', (e) => {
 });
 
 async function performSearch() {
-    const query = document.getElementById('searchInput').value.trim();
-    const loading       = document.getElementById('loading');
-    const tableBody     = document.getElementById('employeeBody');
-    const messageArea   = document.getElementById('messageArea');
+    const query        = document.getElementById('searchInput').value.trim();
+    const loading      = document.getElementById('loading');
+    const tableBody    = document.getElementById('employeeBody');
+    const messageArea  = document.getElementById('messageArea');
     const noResultsArea = document.getElementById('noResultsArea');
 
-    if (!query) return alert("Digite um nome ou matrícula para pesquisar.");
+    if (!query) return alert("Digite um nome ou matr\u00edcula para pesquisar.");
 
     // Reset de tela
     loading.classList.remove('hidden');
     tableBody.innerHTML = '';
-    messageArea.classList.add('hidden');
     messageArea.className = 'hidden';
+    messageArea.innerText = '';
     noResultsArea.classList.add('hidden');
 
     try {
         const data = await ApiService.searchEmployees(query);
 
-        // Suporte ao formato antigo (array) e novo ({ resultados, fontes })
         const employees = Array.isArray(data) ? data : (data.resultados || []);
         const fontes    = Array.isArray(data) ? null  : (data.fontes    || null);
 
-        // ── Aviso de fonte indisponível ────────────────────────────────
+        // ── Informa qual fonte foi usada / avisos de indisponibilidade ───────────
         if (fontes) {
             const avisos = [];
-            if (!fontes.mysql.ok) avisos.push("⚠️ Banco interno (MySQL) indisponível.");
-            if (!fontes.odbc.ok)  avisos.push("⚠️ TOTVS (ODBC) indisponível.");
+
+            // TOTVS indispon\u00edvel (mas MySQL foi consultado)
+            if (fontes.odbc.consultado && !fontes.odbc.ok) {
+                avisos.push("\u26a0\ufe0f TOTVS indispon\u00edvel \u2014 resultado do banco interno.");
+            }
+
+            // MySQL tamb\u00e9m falhou
+            if (fontes.mysql.consultado && !fontes.mysql.ok) {
+                avisos.push("\u26a0\ufe0f Banco interno (MySQL) tamb\u00e9m indispon\u00edvel.");
+            }
 
             if (avisos.length > 0) {
                 messageArea.innerText = avisos.join("  ");
@@ -40,32 +47,31 @@ async function performSearch() {
             }
         }
 
-        // ── Sem resultados em nenhuma fonte ────────────────────────────
+        // ── Sem resultados em nenhuma fonte ────────────────────────────────
         if (!employees || employees.length === 0) {
+
+            // Define o onclick do bot\u00e3o com o termo atual (pr\u00e9-preenche matr\u00edcula se for n\u00famero)
+            document.getElementById('btnOpenAddModal').onclick = () => {
+                if (typeof abrirModalCadastro === 'function') abrirModalCadastro(query);
+            };
+
             noResultsArea.classList.remove('hidden');
 
-            // Só exibe "não encontrado" se as duas fontes responderam OK
-            const ambosOk = !fontes || (fontes.mysql.ok && fontes.odbc.ok);
-            if (ambosOk) {
-                const notFound = document.createElement('p');
-                notFound.innerText = `Nenhum resultado encontrado para "${query}".`;
-                // Evita duplicar a mensagem caso já exista aviso de fonte
-                if (messageArea.classList.contains('hidden')) {
-                    messageArea.innerText = notFound.innerText;
-                    messageArea.classList.remove('hidden');
-                }
+            // S\u00f3 mostra mensagem de "n\u00e3o encontrado" se n\u00e3o h\u00e1 aviso de indisponibilidade j\u00e1 exibido
+            if (messageArea.classList.contains('hidden')) {
+                messageArea.innerText = `Nenhum resultado encontrado para "${query}" em nenhuma base.`;
+                messageArea.classList.remove('hidden');
             }
             return;
         }
 
-        // ── Monta tabela de resultados ─────────────────────────────────
+        // ── Monta tabela de resultados ────────────────────────────────────
         employees.forEach(emp => {
             const row = document.createElement('tr');
 
-            // Badge de origem (TOTVS ou interno)
-            const origemBadge = emp.origem === 'TOTVS'
-                ? '<span class="badge badge-totvs">TOTVS</span>'
-                : '<span class="badge badge-mysql">Interno</span>';
+            const origemLabel = emp.origem === 'TOTVS' ? 'TOTVS' : 'Interno';
+            const origemClass = emp.origem === 'TOTVS' ? 'badge-totvs' : 'badge-mysql';
+            const origemBadge = `<span class="badge ${origemClass}">${origemLabel}</span>`;
 
             row.innerHTML = `
                 <td>${emp.matricula}</td>
@@ -74,7 +80,7 @@ async function performSearch() {
                 <td>${emp.setor}</td>
                 <td>${emp.turno}</td>
                 <td>${emp.dataInicio || '-'}</td>
-                <td><button class="btn-report" title="Gerar Relatório">📄</button></td>
+                <td><button class="btn-report" title="Gerar Relat\u00f3rio">\ud83d\udcc4</button></td>
             `;
 
             row.onclick = (e) => {
@@ -91,11 +97,13 @@ async function performSearch() {
 
     } catch (error) {
         console.error("Erro na busca:", error);
-        messageArea.innerText = "❌ Erro na conexão com o servidor. Verifique se ele está rodando.";
+        messageArea.innerText = "\u274c Erro na conex\u00e3o com o servidor. Verifique se ele est\u00e1 rodando.";
         messageArea.classList.remove('hidden');
         messageArea.classList.add('msg-error');
-
-        // Mesmo com erro de servidor, exibe botão de inserir
+        // Mesmo com erro de servidor, exibe bot\u00e3o de inserir
+        document.getElementById('btnOpenAddModal').onclick = () => {
+            if (typeof abrirModalCadastro === 'function') abrirModalCadastro(query);
+        };
         noResultsArea.classList.remove('hidden');
     } finally {
         loading.classList.add('hidden');
