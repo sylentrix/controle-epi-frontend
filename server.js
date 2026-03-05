@@ -71,11 +71,19 @@ async function buscarNoODBC(busca) {
         const matriculaParam = isNaN(busca) ? -1 : parseInt(busca);
         const rows = await connectionODBC.query(sql, [`%${busca.toUpperCase()}%`, matriculaParam]);
 
+        // Log das chaves reais retornadas pelo driver ODBC (ajuda a depurar aliases)
+        if (rows.length > 0) {
+            console.log('[ODBC/TOTVS] Colunas retornadas:', Object.keys(rows[0]));
+        }
+
         const formatados = rows.map(row => ({
             matricula:  String(row.cdn_funcionario),
             nome:       row.nom_pessoa_fisic,
-            cargo:      row.des_cargo,
-            setor:      row.setor,
+            cargo:      row.des_cargo   || row.DES_CARGO   || '-',
+            // Drivers ODBC podem retornar o alias em minúsculo, maiúsculo
+            // ou ignorar o alias e usar o nome original da coluna
+            setor:      row.setor       || row.SETOR
+                     || row.des_unid_lotac || row.DES_UNID_LOTAC || '-',
             turno:      "1º Turno",
             dataInicio: row.dat_admis_func
                             ? new Date(row.dat_admis_func).toLocaleDateString('pt-BR')
