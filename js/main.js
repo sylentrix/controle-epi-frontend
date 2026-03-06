@@ -20,6 +20,11 @@ async function performSearch() {
     messageArea.innerText = '';
     noResultsArea.classList.add('hidden');
 
+    // Sempre configura o botão de adicionar com o termo atual
+    document.getElementById('btnOpenAddModal').onclick = () => {
+        if (typeof abrirModalCadastro === 'function') abrirModalCadastro(query);
+    };
+
     try {
         const data = await ApiService.searchEmployees(query);
 
@@ -49,12 +54,7 @@ async function performSearch() {
 
         // ── Sem resultados em nenhuma fonte ────────────────────────────────
         if (!employees || employees.length === 0) {
-
-            // Define o onclick do bot\u00e3o com o termo atual (pr\u00e9-preenche matr\u00edcula se for n\u00famero)
-            document.getElementById('btnOpenAddModal').onclick = () => {
-                if (typeof abrirModalCadastro === 'function') abrirModalCadastro(query);
-            };
-
+            document.getElementById('noResultsMsg').innerText = 'Funcionário não encontrado em nenhuma base.';
             noResultsArea.classList.remove('hidden');
 
             // S\u00f3 mostra mensagem de "n\u00e3o encontrado" se n\u00e3o h\u00e1 aviso de indisponibilidade j\u00e1 exibido
@@ -66,6 +66,9 @@ async function performSearch() {
         }
 
         // ── Monta tabela de resultados ────────────────────────────────────
+        // Exibe botão de adicionar mesmo quando há resultados
+        document.getElementById('noResultsMsg').innerText = 'Não é o funcionário que procurava? Cadastre um novo.';
+        noResultsArea.classList.remove('hidden');
         employees.forEach(emp => {
             const row = document.createElement('tr');
 
@@ -100,10 +103,7 @@ async function performSearch() {
         messageArea.innerText = "\u274c Erro na conex\u00e3o com o servidor. Verifique se ele est\u00e1 rodando.";
         messageArea.classList.remove('hidden');
         messageArea.classList.add('msg-error');
-        // Mesmo com erro de servidor, exibe bot\u00e3o de inserir
-        document.getElementById('btnOpenAddModal').onclick = () => {
-            if (typeof abrirModalCadastro === 'function') abrirModalCadastro(query);
-        };
+        // Mesmo com erro de servidor, exibe botão de inserir
         noResultsArea.classList.remove('hidden');
     } finally {
         loading.classList.add('hidden');
