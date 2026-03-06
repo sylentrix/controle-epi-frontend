@@ -72,10 +72,7 @@ header h1 {
     gap: 10px;
 }
 
-header h1::before {
-    content: '🦺';
-    font-size: 1.5rem;
-}
+
 
 .search-container {
     display: flex;
