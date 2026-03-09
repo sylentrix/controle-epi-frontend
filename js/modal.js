@@ -259,3 +259,4 @@ document.getElementById('btnPrintReport').onclick = () => {
     const elemento = document.getElementById('printableArea');
     html2pdf().set({ margin: 10, filename: 'Relatorio.pdf', jsPDF: { format: 'a4' } }).from(elemento).save();
 };
+
