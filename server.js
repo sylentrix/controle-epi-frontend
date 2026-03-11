@@ -32,12 +32,13 @@ async function buscarNoMySQL(busca) {
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
+        const buscaNormalizada = busca.toUpperCase().trim();
         const [rows] = await connection.execute(
             `SELECT matricula, nome, cargo, setor, turno,
                     DATE_FORMAT(inicio, '%d/%m/%Y') AS dataInicio
              FROM funcionarios
-             WHERE nome LIKE ? OR matricula = ?`,
-            [`%${busca}%`, busca]
+             WHERE UPPER(nome) LIKE ? OR matricula = ?`,
+            [`%${buscaNormalizada}%`, busca.trim()]
         );
         console.log(`[MySQL] ${rows.length} resultado(s) para "${busca}"`);
         return { resultados: rows, erro: null };
@@ -61,12 +62,13 @@ async function buscarNoODBC(busca) {
                    cg.des_cargo,
                    fc.cdn_funcionario,
                    fc.dat_admis_func,
+                   fc.dat_desligto_func,
                    fc.nom_pessoa_fisic
             FROM hcm.PUB."funcionario" AS fc
             INNER JOIN hcm.PUB.cargo    AS cg ON cg.cdn_cargo_basic  = fc.cdn_cargo_basic
             INNER JOIN hcm.PUB.unid_lotac AS ul ON ul.cod_unid_lotac = fc.cod_unid_lotac
-            WHERE fc.nom_pessoa_fisic LIKE ?
-               OR fc.cdn_funcionario  = ?`;
+            WHERE fc.dat_desligto_func IS NULL
+              AND (fc.nom_pessoa_fisic LIKE ? OR fc.cdn_funcionario = ?)`;
 
         const matriculaParam = isNaN(busca) ? -1 : parseInt(busca);
         const rows = await connectionODBC.query(sql, [`%${busca.toUpperCase()}%`, matriculaParam]);
@@ -299,6 +301,80 @@ app.get("/api/funcionarios/:matricula/epis", async (req, res) => {
             assinatura:   row.assinatura
                             ? `data:image/png;base64,${row.assinatura.toString('base64')}` : null
         })));
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// 5. BUSCAR ASSINATURA DO TERMO (verifica se funcionário já assinou)
+// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// 5. VERIFICAR ASSINATURA DO TERMO (coluna assinatura na tabela funcionarios)
+// ─────────────────────────────────────────────────────────────
+app.get("/api/funcionarios/:matricula/termo", async (req, res) => {
+    const { matricula } = req.params;
+    let connection;
+    try {
+        connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute(
+            `SELECT assinatura, updated_at
+             FROM funcionarios
+             WHERE matricula = ?`,
+            [matricula]
+        );
+        if (rows.length === 0 || !rows[0].assinatura) return res.json({ assinou: false });
+        res.json({
+            assinou: true,
+            dataAssinatura: rows[0].updated_at
+                ? new Date(rows[0].updated_at).toLocaleDateString('pt-BR') : null,
+            assinatura: `data:image/png;base64,${rows[0].assinatura.toString('base64')}`
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// 6. SALVAR ASSINATURA DO TERMO (grava em funcionarios.assinatura)
+// ─────────────────────────────────────────────────────────────
+app.post("/api/funcionarios/:matricula/termo", async (req, res) => {
+    const { matricula } = req.params;
+    const { funcionario, assinaturaBase64 } = req.body;
+    let connection;
+    try {
+        connection = await mysql.createConnection(dbConfig);
+
+        const base64Data = assinaturaBase64.replace(/^data:image\/\w+;base64,/, "");
+        const buffer     = Buffer.from(base64Data, 'base64');
+
+        // Upsert: insere o funcionário se não existir, e sempre salva a assinatura
+        await connection.execute(
+            `INSERT INTO funcionarios (matricula, nome, cargo, setor, turno, inicio, assinatura)
+             VALUES (?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+               nome       = VALUES(nome),
+               cargo      = VALUES(cargo),
+               setor      = VALUES(setor),
+               turno      = VALUES(turno),
+               inicio     = VALUES(inicio),
+               assinatura = VALUES(assinatura)`,
+            [
+                funcionario.matricula,
+                funcionario.nome,
+                funcionario.cargo,
+                funcionario.setor,
+                funcionario.turno,
+                brDateToSql(funcionario.dataInicio),
+                buffer
+            ]
+        );
+
+        res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: e.message });
     } finally {

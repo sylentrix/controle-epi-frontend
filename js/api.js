@@ -39,5 +39,24 @@ const ApiService = {
         const response = await fetch(`${API_BASE_URL}/funcionarios/${matricula}/epis`);
         if (!response.ok) return [];
         return await response.json();
+    },
+
+    async getTermo(matricula) {
+        const response = await fetch(`${API_BASE_URL}/funcionarios/${matricula}/termo`);
+        if (!response.ok) return { assinou: false };
+        return await response.json();
+    },
+
+    async saveTermo(matricula, funcionario, assinaturaBase64) {
+        const response = await fetch(`${API_BASE_URL}/funcionarios/${matricula}/termo`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ funcionario, assinaturaBase64 })
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erro ao salvar assinatura do termo");
+        }
+        return await response.json();
     }
 };

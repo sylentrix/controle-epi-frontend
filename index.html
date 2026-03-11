@@ -198,39 +198,207 @@
     <div id="reportModal" class="modal-overlay hidden">
         <div class="modal-content report-paper">
             <span class="close-btn" id="closeReportModal">&times;</span>
+
             <div id="printableArea">
-                <div class="report-header">
-                    <h2>RELATÓRIO HISTÓRICO DE ENTREGAS DE EPI</h2>
-                </div>
-                <div class="report-employee-data">
-                    <div class="info-grid">
-                        <p><strong>Matrícula:</strong> <span id="rep_matricula"></span></p>
-                        <p><strong>Nome:</strong> <span id="rep_nome"></span></p>
-                        <p><strong>Cargo:</strong> <span id="rep_cargo"></span></p>
+
+                <!-- ══════════════════════════════════════════
+                     PÁGINA 1 — TERMO DE RESPONSABILIDADE
+                     ══════════════════════════════════════════ -->
+                <div class="report-page report-page-portrait">
+
+                    <div class="report-header">
+                        <h2>FICHA DE ENTREGA DOS EPI'S</h2>
+                        <p class="report-subtitle">TERMO DE RESPONSABILIDADE PELA GUARDA E USO DE<br>EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL — E.P.I.</p>
                     </div>
-                </div>
-                <div class="report-table-section">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>EPI</th>
-                                <th>Qtde</th>
-                                <th>C.A.</th>
-                                <th>Retirada</th>
-                                <th>Assinatura</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportListBody"></tbody>
-                    </table>
+
+                    <div class="rep-section-title">IDENTIFICAÇÃO DO EMPREGADO</div>
+                    <div class="rep-id-grid">
+                        <div class="rep-field rep-field-xl">
+                            <span class="rep-label">Nome</span>
+                            <span class="rep-value" id="rep_nome"></span>
+                        </div>
+                        <div class="rep-field">
+                            <span class="rep-label">Matrícula</span>
+                            <span class="rep-value" id="rep_matricula"></span>
+                        </div>
+                    </div>
+                    <div class="rep-id-grid">
+                        <div class="rep-field rep-field-xl">
+                            <span class="rep-label">Cargo</span>
+                            <span class="rep-value" id="rep_cargo"></span>
+                        </div>
+                        <div class="rep-field">
+                            <span class="rep-label">Início</span>
+                            <span class="rep-value" id="rep_inicio"></span>
+                        </div>
+                    </div>
+                    <div class="rep-id-grid">
+                        <div class="rep-field rep-field-xl">
+                            <span class="rep-label">Setor</span>
+                            <span class="rep-value" id="rep_setor"></span>
+                        </div>
+                        <div class="rep-field">
+                            <span class="rep-label">Turno</span>
+                            <span class="rep-value" id="rep_turno"></span>
+                        </div>
+                    </div>
+
+                    <div class="rep-termo-body">
+                        <p>Recebi da empresa <strong>Brico Bread Alimentos Ltda.</strong>, a título de empréstimo, para meu uso exclusivo e obrigatório nas dependências da empresa, conforme determinado na NR-6 da Portaria MTP nº 4.219, de 20 de novembro de 2022, os equipamentos especificados neste termo de responsabilidade, comprometendo-me a mantê-los em perfeito estado de conservação, ficando ciente de que:</p>
+                        <ol class="rep-termo-list">
+                            <li>Recebi treinamento quanto à necessidade na utilização dos referidos EPI's, a maneira correta de usá-los, guardá-los e higienizá-los, bem como da minha responsabilidade quanto a seu uso conforme determinado na NR-1 da Portaria MTP nº 4.219, de 20 de dezembro de 2022.</li>
+                            <li>Se o equipamento for danificado ou inutilizado por emprego inadequado, mau uso, negligência ou extravio, a empresa me fornecerá novo equipamento e cobrará o valor de um equipamento da mesma marca ou equivalente ao da praça (parágrafo único do artigo 462 da CLT).</li>
+                            <li>Fico proibido de dar ou emprestar o equipamento que estiver sob minha responsabilidade, só podendo fazê-lo se receber ordem por escrito da pessoa autorizada para tal fim.</li>
+                            <li>Em caso de dano, inutilização ou extravio do equipamento deverei comunicar imediatamente ao setor competente.</li>
+                            <li>Terminando os serviços ou no caso de rescisão do contrato de trabalho, devolverei o equipamento completo e em perfeito estado de conservação, considerando-se o tempo do uso dele, ao setor competente.</li>
+                            <li>Fico ciente de que não utilizando o equipamento de proteção individual em serviço estarei sujeito às sanções disciplinares cabíveis que irão desde simples advertências até a dispensa por justa causa nos termos do Art. 482 da C.L.T. combinado com a NR-1 e NR-6 da Portaria 3.214/78.</li>
+                            <li>Recebi um armário com cadeado, em perfeitas condições, para minha utilização. Sou responsável pela cópia da chave que me foi entregue e que, em caso de sua perda ou extravio, terei que repor uma nova cópia.</li>
+                            <li>Estando os equipamentos em minha posse, estarei sujeito a inspeções sem prévio aviso.</li>
+                            <li>Fico ciente de que não utilizando o equipamento de proteção individual em serviço estarei sujeito às sanções disciplinares cabíveis que irão desde simples advertências até a dispensa por justa causa nos termos do Art. 482 da C.L.T. combinado com a NR-1 e NR-6 da Portaria 3.214/78.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Assinatura de Ciência dos Termos (exibida a partir do banco) -->
+                    <div class="rep-termo-assinatura">
+                        <p class="rep-ciente-label">Ciente e de acordo com os termos acima:</p>
+                        <div class="rep-sig-box">
+
+                            <!-- Assinatura já salva no banco -->
+                            <img id="rep-sig-img" src="" alt="Assinatura" style="display:none; height:90px; border:1px dashed #ccc; border-radius:4px;">
+
+                            <!-- Canvas para assinar quando ainda não há assinatura -->
+                            <div id="rep-sig-pendente" style="display:none; width:100%; max-width:520px;">
+                                <p style="font-size:0.78rem; color:#c00; font-weight:600; margin:0 0 6px;">
+                                    ⚠️ Funcionário ainda não assinou. Assine abaixo e clique em Salvar:
+                                </p>
+                                <canvas id="rep-sig-canvas" width="500" height="100"></canvas>
+                                <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; width:500px; max-width:100%; margin-top:6px;">
+                                    <button id="rep-sig-clearBtn" class="btn-outline-sm">Limpar</button>
+                                    <button id="rep-sig-saveBtn" class="btn-primary" style="padding:6px 18px; font-size:0.85rem;">💾 Salvar Assinatura</button>
+                                </div>
+                            </div>
+
+                            <div class="rep-sig-underline"></div>
+                            <div class="rep-sig-name" id="rep_nome_assinatura"></div>
+                            <div class="rep-sig-date" id="rep_dataAssinatura"></div>
+                        </div>
+                    </div>
+
+                </div><!-- /page 1 -->
+
+                <!-- ══════════════════════════════════════════
+                     PÁGINA 2 — TABELA DE ENTREGAS (paisagem)
+                     ══════════════════════════════════════════ -->
+                <div class="report-page report-page-landscape">
+
+                    <div class="report-header">
+                        <h2>HISTÓRICO DE ENTREGAS DE EPI</h2>
+                        <p class="report-subtitle">
+                            <strong id="rep2_nome"></strong> &nbsp;|&nbsp;
+                            Matrícula: <strong id="rep2_matricula"></strong> &nbsp;|&nbsp;
+                            Cargo: <strong id="rep2_cargo"></strong> &nbsp;|&nbsp;
+                            Setor: <strong id="rep2_setor"></strong>
+                        </p>
+                    </div>
+
+                    <div class="report-table-section">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>EPI</th>
+                                    <th>Qtde</th>
+                                    <th>Modelo</th>
+                                    <th>C.A.</th>
+                                    <th>Retirada</th>
+                                    <th>Devolução</th>
+                                    <th>Assinatura do Funcionário</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportListBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="report-footer">
+                        <p>Documento gerado em: <span id="rep_dataGeracao"></span></p>
+                    </div>
+
+                </div><!-- /page 2 -->
+
+            </div><!-- /printableArea -->
+
+            <div class="modal-actions no-print">
+                <button id="btnPrintReport" class="btn-primary">🖨️ Imprimir</button>
+                <button id="btnSavePDF" class="btn-primary" style="background:var(--info);">💾 Salvar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: TERMO DE RESPONSABILIDADE (assinar antes do primeiro EPI) -->
+    <div id="termoModal" class="modal-overlay hidden">
+        <div class="modal-content termo-paper">
+            <span class="close-btn" id="closeTermoModal">&times;</span>
+
+            <div class="report-header" style="margin-bottom:14px;">
+                <h2>FICHA DE ENTREGA DOS EPI'S</h2>
+                <p class="report-subtitle">TERMO DE RESPONSABILIDADE PELA GUARDA E USO DE<br>EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL — E.P.I.</p>
+            </div>
+
+            <!-- Identificação (preenchida por JS) -->
+            <div class="rep-section-title">IDENTIFICAÇÃO DO EMPREGADO</div>
+            <div class="rep-id-grid">
+                <div class="rep-field rep-field-xl"><span class="rep-label">Nome</span><span class="rep-value" id="termo_nome"></span></div>
+                <div class="rep-field"><span class="rep-label">Matrícula</span><span class="rep-value" id="termo_matricula"></span></div>
+            </div>
+            <div class="rep-id-grid">
+                <div class="rep-field rep-field-xl"><span class="rep-label">Cargo</span><span class="rep-value" id="termo_cargo"></span></div>
+                <div class="rep-field"><span class="rep-label">Início</span><span class="rep-value" id="termo_inicio"></span></div>
+            </div>
+            <div class="rep-id-grid">
+                <div class="rep-field rep-field-xl"><span class="rep-label">Setor</span><span class="rep-value" id="termo_setor"></span></div>
+                <div class="rep-field"><span class="rep-label">Turno</span><span class="rep-value" id="termo_turno"></span></div>
+            </div>
+
+            <!-- Texto do Termo -->
+            <div class="rep-termo-body" style="margin-top:14px;">
+                <p>Recebi da empresa <strong>Brico Bread Alimentos Ltda.</strong>, a título de empréstimo, para meu uso exclusivo e obrigatório nas dependências da empresa, conforme determinado na NR-6 da Portaria MTP nº 4.219, de 20 de novembro de 2022, os equipamentos especificados neste termo de responsabilidade, comprometendo-me a mantê-los em perfeito estado de conservação, ficando ciente de que:</p>
+                <ol class="rep-termo-list">
+                    <li>Recebi treinamento quanto à necessidade na utilização dos referidos EPI's, a maneira correta de usá-los, guardá-los e higienizá-los, bem como da minha responsabilidade quanto a seu uso conforme determinado na NR-1 da Portaria MTP nº 4.219, de 20 de dezembro de 2022.</li>
+                    <li>Se o equipamento for danificado ou inutilizado por emprego inadequado, mau uso, negligência ou extravio, a empresa me fornecerá novo equipamento e cobrará o valor de um equipamento da mesma marca ou equivalente ao da praça (parágrafo único do artigo 462 da CLT).</li>
+                    <li>Fico proibido de dar ou emprestar o equipamento que estiver sob minha responsabilidade, só podendo fazê-lo se receber ordem por escrito da pessoa autorizada para tal fim.</li>
+                    <li>Em caso de dano, inutilização ou extravio do equipamento deverei comunicar imediatamente ao setor competente.</li>
+                    <li>Terminando os serviços ou no caso de rescisão do contrato de trabalho, devolverei o equipamento completo e em perfeito estado de conservação, considerando-se o tempo do uso dele, ao setor competente.</li>
+                    <li>Fico ciente de que não utilizando o equipamento de proteção individual em serviço estarei sujeito às sanções disciplinares cabíveis que irão desde simples advertências até a dispensa por justa causa nos termos do Art. 482 da C.L.T. combinado com a NR-1 e NR-6 da Portaria 3.214/78.</li>
+                    <li>Recebi um armário com cadeado, em perfeitas condições, para minha utilização. Sou responsável pela cópia da chave que me foi entregue e que, em caso de sua perda ou extravio, terei que repor uma nova cópia.</li>
+                    <li>Estando os equipamentos em minha posse, estarei sujeito a inspeções sem prévio aviso.</li>
+                    <li>Fico ciente de que não utilizando o equipamento de proteção individual em serviço estarei sujeito às sanções disciplinares cabíveis que irão desde simples advertências até a dispensa por justa causa nos termos do Art. 482 da C.L.T. combinado com a NR-1 e NR-6 da Portaria 3.214/78.</li>
+                </ol>
+            </div>
+
+            <!-- Assinatura -->
+            <div class="rep-termo-assinatura" style="margin-top:16px;">
+                <p class="rep-ciente-label">Li, compreendi e concordo com os termos acima. Assine abaixo:</p>
+                <div class="rep-sig-box">
+                    <canvas id="termo-sig-canvas" width="500" height="110"></canvas>
+                    <div style="width:500px;max-width:100%;text-align:right;margin-top:4px;">
+                        <button id="termo-sig-clearBtn" class="btn-outline-sm">Limpar</button>
+                    </div>
+                    <div class="rep-sig-underline"></div>
+                    <div class="rep-sig-name" id="termo_nome_sig"></div>
+                    <div class="rep-sig-date" id="termo_data_sig"></div>
                 </div>
             </div>
-            <div class="modal-actions no-print">
-                <button id="btnPrintReport" class="btn-primary"> Imprimir / Salvar PDF</button>
+
+            <div id="termoError" class="form-error hidden" style="margin-top:12px;"></div>
+
+            <div style="margin-top:18px; display:flex; gap:10px; justify-content:flex-end;">
+                <button id="btnCancelarTermo" style="padding:10px 20px; cursor:pointer; border-radius:6px; border:1px solid #ccc;">Cancelar</button>
+                <button id="btnConfirmarTermo" class="btn-success" style="width:auto; padding:10px 28px;">✅ Confirmar Leitura e Assinar</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="js/api.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/main.js"></script>
